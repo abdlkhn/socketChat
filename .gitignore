@@ -6,3 +6,9 @@ public/css/*
 
 # macOS Finder file
 .DS_Store
+
+# ignore environment file
+.env
+
+# ignore tls certificates
+tls/

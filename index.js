@@ -1,10 +1,42 @@
 const express = require("express"),
       session = require("express-session"),
       compression = require("compression"),
-      bodyParser = require('body-parser')
+      bodyParser = require('body-parser'),
+      dotenv = require("dotenv"),
+      https = require('https'),
+      fs = require('fs')
 
+dotenv.config()
 let app = express()
-const server = require("http").createServer(app)
+var server
+var privkey
+var cert
+var fullchain
+
+privkey = process.env.PRIVKEY
+cert = process.env.CERT
+fullchain = process.env.FULLCHAIN
+
+if ((privkey) && (cert) && (fullchain)) {
+    console.log("found certs... using https...")
+    server = require("https").createServer({
+	key: fs.readFileSync(
+	    process.env.PRIVKEY || './tls/privkey.pem'
+	),
+	cert: fs.readFileSync(
+	    process.env.CERT || './tls/cert.pem'
+	),
+	ca: fs.readFileSync(
+	    process.env.FULLCHAIN || './tls/fullchain.pem'
+	),
+	requestCert: true,
+	rejectUnauthorized: false
+    }, app)
+} else {
+    console.log("no certs found... falling back to http only...")
+    server = require("http").createServer(app)
+}
+
 const io = require('socket.io')({
   pingTimeout: 20000,
   pingInterval: 10000
